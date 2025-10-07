@@ -1,6 +1,0 @@
-id,user_id,session_id,timestamp,query_text,bot_response,intent,resolved,rating,response_time,channel,language
-1,demo_user,session_001,2025-01-01 10:00:00.000000,Hello,Hi there! How can I help you today?,greeting,1,5,0.15,web,en
-2,demo_user,session_001,2025-01-01 10:01:00.000000,What time is it?,The current time is 10:01 AM,time_query,1,4,0.22,web,en
-3,demo_user,session_001,2025-01-01 10:02:00.000000,Thank you,You're welcome!,thanks,1,5,0.18,web,en
-4,test_user,session_002,2025-01-01 11:00:00.000000,Help me,How can I assist you today?,help_request,1,3,0.25,web,en
-5,test_user,session_002,2025-01-01 11:01:00.000000,Goodbye,Goodbye! Have a great day!,goodbye,1,4,0.12,web,en

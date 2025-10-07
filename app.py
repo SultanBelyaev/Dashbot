@@ -1,7 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
-import json
 import uuid
 import time
 
@@ -111,10 +110,6 @@ def generate_bot_reply(user_text):
 def home():
     return render_template('index.html')
 
-# Маршрут для приветственной страницы (опционально)
-@app.route("/welcome")
-def welcome():
-    return "Welcome to our chatbot!"
 
 # Основной маршрут для общения
 @app.route("/chat", methods=["POST"])
@@ -276,136 +271,9 @@ def status():
         "status": "online",
         "bot_name": "Simple ChatBot",
         "version": "2.0",
-        "features": ["greeting", "time", "date", "basic_qa", "logging", "rating", "csv_sync"]
+        "features": ["greeting", "time", "date", "basic_qa", "logging", "rating"]
     })
 
-# Маршруты для синхронизации с CSV
-@app.route("/sync/csv-to-db", methods=["POST"])
-def sync_csv_to_db():
-    """Синхронизация данных из CSV в базу данных"""
-    try:
-        from sync_csv_db import CSVDBSync
-        sync = CSVDBSync()
-        
-        if sync.csv_to_db():
-            return jsonify({
-                "message": "Синхронизация CSV -> БД выполнена успешно",
-                "status": "success"
-            })
-        else:
-            return jsonify({
-                "message": "Ошибка синхронизации CSV -> БД",
-                "status": "error"
-            }), 500
-            
-    except Exception as e:
-        return jsonify({
-            "message": f"Ошибка сервера: {str(e)}",
-            "status": "error"
-        }), 500
-
-@app.route("/sync/db-to-csv", methods=["POST"])
-def sync_db_to_csv():
-    """Экспорт данных из базы данных в CSV"""
-    try:
-        from sync_csv_db import CSVDBSync
-        sync = CSVDBSync()
-        
-        if sync.db_to_csv():
-            return jsonify({
-                "message": "Экспорт БД -> CSV выполнен успешно",
-                "status": "success"
-            })
-        else:
-            return jsonify({
-                "message": "Ошибка экспорта БД -> CSV",
-                "status": "error"
-            }), 500
-            
-    except Exception as e:
-        return jsonify({
-            "message": f"Ошибка сервера: {str(e)}",
-            "status": "error"
-        }), 500
-
-@app.route("/sync/both-ways", methods=["POST"])
-def sync_both_ways():
-    """Двусторонняя синхронизация"""
-    try:
-        from sync_csv_db import CSVDBSync
-        sync = CSVDBSync()
-        
-        if sync.sync_both_ways():
-            return jsonify({
-                "message": "Двусторонняя синхронизация выполнена успешно",
-                "status": "success"
-            })
-        else:
-            return jsonify({
-                "message": "Ошибка двусторонней синхронизации",
-                "status": "error"
-            }), 500
-            
-    except Exception as e:
-        return jsonify({
-            "message": f"Ошибка сервера: {str(e)}",
-            "status": "error"
-        }), 500
-
-@app.route("/sync/stats")
-def sync_stats():
-    """Получение статистики синхронизации"""
-    try:
-        from sync_csv_db import CSVDBSync
-        sync = CSVDBSync()
-        
-        stats = sync.get_stats()
-        return jsonify(stats)
-        
-    except Exception as e:
-        return jsonify({
-            "message": f"Ошибка сервера: {str(e)}",
-            "status": "error"
-        }), 500
-
-@app.route("/sync/delete", methods=["POST"])
-def sync_delete_records():
-    """Удаление записей из CSV и БД"""
-    try:
-        data = request.get_json()
-        if not data or 'record_ids' not in data:
-            return jsonify({"error": "Отсутствует поле 'record_ids' в запросе"}), 400
-        
-        record_ids = data['record_ids']
-        if not isinstance(record_ids, list):
-            return jsonify({"error": "record_ids должен быть списком"}), 400
-        
-        from sync_csv_db import CSVDBSync
-        sync = CSVDBSync()
-        
-        # Удаляем из обеих систем
-        csv_success = sync.delete_from_csv(record_ids)
-        db_success = sync.delete_from_db(record_ids)
-        
-        if csv_success and db_success:
-            return jsonify({
-                "message": f"Удалено {len(record_ids)} записей из CSV и БД",
-                "status": "success",
-                "deleted_count": len(record_ids)
-            })
-        else:
-            return jsonify({
-                "message": "Ошибка удаления записей",
-                "status": "error",
-                "csv_success": csv_success,
-                "db_success": db_success
-            }), 500
-            
-    except Exception as e:
-        return jsonify({
-            "message": f"Ошибка сервера: {str(e)}",
-            "status": "error"
-        }), 500
 
 # Инициализация базы данных
 def init_db():
