@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Простой Чат-Бот</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .chat-container {
+            width: 90%;
+            max-width: 800px;
+            height: 80vh;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+            position: relative;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.bot .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e1e5e9;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-time {
+            font-size: 11px;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        .chat-input-container {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e1e5e9;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 25px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+
+        .send-button {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+
+        .send-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .send-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .typing-indicator {
+            display: none;
+            padding: 12px 16px;
+            background: white;
+            border: 1px solid #e1e5e9;
+            border-radius: 18px;
+            border-bottom-left-radius: 4px;
+            color: #666;
+            font-style: italic;
+        }
+
+        .typing-indicator.show {
+            display: block;
+        }
+
+        .welcome-message {
+            text-align: center;
+            color: #666;
+            font-style: italic;
+            margin: 20px 0;
+        }
+
+        .rating-buttons {
+            display: none;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .rating-buttons.show {
+            display: block;
+        }
+
+        .rating-btn {
+            background: none;
+            border: 2px solid #ddd;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            margin: 0 5px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s;
+        }
+
+        .rating-btn:hover {
+            border-color: #667eea;
+            background: #f0f0f0;
+        }
+
+        .rating-btn.selected {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        .rating-label {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        @media (max-width: 600px) {
+            .chat-container {
+                width: 95%;
+                height: 90vh;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            🤖 Простой Чат-Бот
+        </div>
+        
+        <div class="chat-messages" id="chatMessages">
+            <div class="welcome-message">
+                Добро пожаловать! Напишите что-нибудь, чтобы начать общение.
+            </div>
+        </div>
+        
+        <div class="typing-indicator" id="typingIndicator">
+            Бот печатает...
+        </div>
+        
+        <div class="chat-input-container">
+            <input 
+                type="text" 
+                id="chatInput" 
+                class="chat-input" 
+                placeholder="Введите ваше сообщение..."
+                autocomplete="off"
+            >
+            <button id="sendButton" class="send-button">Отправить</button>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const chatInput = document.getElementById('chatInput');
+        const sendButton = document.getElementById('sendButton');
+        const typingIndicator = document.getElementById('typingIndicator');
+
+        // Функция для добавления сообщения в чат
+        function addMessage(content, isUser = false, logId = null) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            const messageContent = document.createElement('div');
+            messageContent.className = 'message-content';
+            messageContent.textContent = content;
+            
+            const messageTime = document.createElement('div');
+            messageTime.className = 'message-time';
+            messageTime.textContent = new Date().toLocaleTimeString('ru-RU', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+            
+            messageContent.appendChild(messageTime);
+            messageDiv.appendChild(messageContent);
+            
+            // Добавляем кнопки оценки для ответов бота
+            if (!isUser && logId) {
+                const ratingDiv = document.createElement('div');
+                ratingDiv.className = 'rating-buttons';
+                ratingDiv.id = `rating-${logId}`;
+                
+                const ratingLabel = document.createElement('div');
+                ratingLabel.className = 'rating-label';
+                ratingLabel.textContent = 'Оцените ответ:';
+                ratingDiv.appendChild(ratingLabel);
+                
+                for (let i = 1; i <= 5; i++) {
+                    const btn = document.createElement('button');
+                    btn.className = 'rating-btn';
+                    btn.textContent = i;
+                    btn.onclick = () => rateResponse(logId, i, btn);
+                    ratingDiv.appendChild(btn);
+                }
+                
+                messageDiv.appendChild(ratingDiv);
+            }
+            
+            chatMessages.appendChild(messageDiv);
+            
+            // Прокрутка вниз
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Функция для показа индикатора печати
+        function showTyping() {
+            typingIndicator.classList.add('show');
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Функция для скрытия индикатора печати
+        function hideTyping() {
+            typingIndicator.classList.remove('show');
+        }
+
+        // Функция для отправки сообщения
+        async function sendMessage() {
+            const message = chatInput.value.trim();
+            if (!message) return;
+
+            // Добавляем сообщение пользователя
+            addMessage(message, true);
+            chatInput.value = '';
+            sendButton.disabled = true;
+            sendButton.textContent = 'Отправка...';
+
+            // Показываем индикатор печати
+            showTyping();
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        message: message,
+                        user_id: 'web_user',
+                        session_id: getSessionId(),
+                        channel: 'web',
+                        language: 'ru'
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Скрываем индикатор печати
+                hideTyping();
+
+                if (response.ok) {
+                    // Добавляем ответ бота с ID для оценки
+                    addMessage(data.response, false, data.log_id);
+                } else {
+                    // Показываем ошибку
+                    addMessage(`Ошибка: ${data.error || 'Неизвестная ошибка'}`, false);
+                }
+            } catch (error) {
+                hideTyping();
+                addMessage(`Ошибка соединения: ${error.message}`, false);
+            } finally {
+                sendButton.disabled = false;
+                sendButton.textContent = 'Отправить';
+                chatInput.focus();
+            }
+        }
+
+        // Функция для оценки ответа
+        async function rateResponse(logId, rating, button) {
+            try {
+                const response = await fetch('/rate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        log_id: logId,
+                        rating: rating
+                    })
+                });
+
+                if (response.ok) {
+                    // Подсвечиваем выбранную кнопку
+                    const ratingDiv = document.getElementById(`rating-${logId}`);
+                    const buttons = ratingDiv.querySelectorAll('.rating-btn');
+                    buttons.forEach(btn => btn.classList.remove('selected'));
+                    button.classList.add('selected');
+                    
+                    // Скрываем кнопки оценки через 2 секунды
+                    setTimeout(() => {
+                        ratingDiv.style.display = 'none';
+                    }, 2000);
+                } else {
+                    const data = await response.json();
+                    console.error('Ошибка оценки:', data.error);
+                }
+            } catch (error) {
+                console.error('Ошибка соединения при оценке:', error);
+            }
+        }
+
+        // Функция для получения/создания ID сессии
+        function getSessionId() {
+            let sessionId = sessionStorage.getItem('chatbot_session_id');
+            if (!sessionId) {
+                sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                sessionStorage.setItem('chatbot_session_id', sessionId);
+            }
+            return sessionId;
+        }
+
+        // Обработчики событий
+        sendButton.addEventListener('click', sendMessage);
+        
+        chatInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        // Фокус на поле ввода при загрузке
+        chatInput.focus();
+
+        // Обработка изменения размера окна
+        window.addEventListener('resize', function() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        });
+    </script>
+</body>
+</html>
+
